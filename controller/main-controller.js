@@ -43,13 +43,15 @@ exports.twitter=(req,res)=>{
     data=[];
     const needle = require('needle');
 
+    
+//    username=req.params.param
 // The code below sets the bearer token from your environment variables
 // To set environment variables on macOS or Linux, run the export command below from the terminal:
 // export BEARER_TOKEN='YOUR-TOKEN'
 const token = process.env.BEARER_TOKEN;
 
 const endpointUrl = 'https://api.twitter.com/2/tweets/search/recent'
-const endpoint1='https://api.twitter.com/2/users/by/username/'
+const endpoint1=`https://api.twitter.com/2/users/by`
  param=req.params.param
 async function getRequest() {
 
@@ -60,26 +62,33 @@ async function getRequest() {
         'query': `${param}`,
         'tweet.fields': 'author_id'
     }
+    const params1={
+        'usernames': `${param}`,
+        'tweet.fields': 'author_id'
+    }
 
     const res = await needle('get', endpointUrl, params, {
         headers: { 
             // "User-Agent": "v2FullArchiveJS",
+            "query":`${param}`,
             "authorization": `Bearer ${token}`
         }
     })
     
-    const res1 = await needle('get', endpoint1, params, {
+    const res1 = await needle('get', endpoint1, params1, {
         headers: {
             // "User-Agent": "v2FullArchiveJS",
+            "usernames":`${param}`,
             "authorization": `Bearer ${token}`
         }
     })
  
+
  
-    if (res.body) {
+    if (res.body || res1.body) {
       
-        data.push(res.body);
-        return res.body;
+        // data.push(res.body); 
+        return {user:res1.body,tweets:res.body};
     } else {
         throw new Error('Unsuccessful request');
     }
@@ -90,14 +99,12 @@ async function getRequest() {
     try {
         // Make request
         const response = await getRequest();
-        data.map(x=>{
-            console.log("hello",x.data)
-        })
-        res.json({
-            recent_tweets: data.map(x=>{
-                x.data
-            })
-        })
+        
+        // data.map(x=>{
+        //     console.log("hello",x.data)
+        // })
+        res.json(response)
+        
         // console.dir(response, {
         //     depth: null
         // });
@@ -106,7 +113,7 @@ async function getRequest() {
         console.log(e);
         process.exit(-1);
     }
-    process.exit();
+    // process.exit();
 })();
 }
 
@@ -121,7 +128,7 @@ exports.instagram=async (req,res)=>{
         })
         .catch((err) => {
             console.error(err)
-            res.status(500).send(err)
+            res.status(500).send(err) 
         }) 
         // try {
         //     const {
